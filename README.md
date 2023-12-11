@@ -9,6 +9,14 @@ To get dependecies run:
 npm install
 ```
 
+# Testing
+
+There is a single test file in `test` folder. To run tests run the below command in your command line:
+
+```shell
+npx hardhat test
+```
+
 # Deploying
 
 1. We need to compile contracts
@@ -42,3 +50,6 @@ npm run dp-eth
 ```shell
 npm run dp-pol
 ```
+
+
+
