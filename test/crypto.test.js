@@ -1,129 +1,118 @@
-const {
-  time,
-  loadFixture,
-} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-
+// CryptoXRB.test.js
 const { expect } = require("chai");
-const { upgrades, ethers } = require("hardhat");
+const { ethers, waffle, upgrades } = require("hardhat");
+const { parseUnits } = ethers;
 
-describe("CryptoXR", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-
-  let cryptoxr;
-  let owner;
-  let otherAccount;
-
-  async function deploy() {
-    const [owner, otherAccount] = await ethers.getSigners();
-    const CryptoXR = await ethers.getContractFactory("CryptoXR");
-    const cryptoxr = await upgrades.deployProxy(CryptoXR, [], {initializer: "initialize", kind: "transparent"});
-    return {cryptoxr, owner, otherAccount}; 
-  }
+describe("CryptoXRB", function () {
+  let cryptoXRB;
+  let owner, admin, user;
+  let mainOwner = '0x30b7f99664F5449629d06549fd0510086141b915';
 
   beforeEach(async function () {
-    ({ cryptoxr, owner, otherAccount } = await loadFixture(deploy));
+    [owner, admin, user] = await ethers.getSigners();
+
+    // Deploy the contract
+    const CryptoXRB = await ethers.getContractFactory("CryptoXRB");
+    cryptoXRB = await upgrades.deployProxy(CryptoXRB, [], { initializer: "initialize", kind: 'transparent' });
+
+    // Add admin
+    await cryptoXRB.addAdmin(admin.address, true);
   });
 
+  it("Should initialize the contract with correct initial balances", async function () {
+    const balances = await Promise.all([
+      cryptoXRB.balanceOf(mainOwner),
+      cryptoXRB.balanceOf("0x55d5a6809034a21B9677F418B994CAd4FC9d7B01"),
+      cryptoXRB.balanceOf("0x3765eCC3A3466c94e3926DCc644779102F3bd74b"),
+      cryptoXRB.balanceOf("0x4B7fbE5581DA3C7783e185D7083a12EC77994770"),
+      cryptoXRB.balanceOf("0x246f9ece9Be9f59B17176C059064433e70079827"),
+      cryptoXRB.balanceOf("0x5B6E8cB706302aF605FBDB36154ECe068662D30E"),
+      cryptoXRB.balanceOf("0xF12338660Ff6C3B5b982e52eB72521499A44c6Db"),
+    ]);
 
+    const expectedBalances = [
+      parseUnits("1000000000", 18),
+      parseUnits("250000000", 18),
+      parseUnits("100000000", 18),
+      parseUnits("50000000", 18),
+      parseUnits("100000000", 18),
+      parseUnits("50000000", 18),
+      parseUnits("50000000", 18),
+    ];
 
-
-  describe("Deployment", function () {
-    it("Initial mint amount should be 5000_000_000e18", async function () {
-      expect(await cryptoxr.balanceOf(owner)).to.equal(
-        5000000000000000000000000000n
-      );
-    });
-    it("Initial total supply should be 5000_000_000e18", async function () {
-      expect(await cryptoxr.totalSupply()).to.equal(5000000000000000000000000000n);
-    });
-    it("Initial owner should be owner", async function () {
-      const _owner = await cryptoxr.owner();
-
-      expect(_owner).to.equal(owner.address);
-    });
-
-    it("Initial owner should be admin", async function () {
-      expect(await cryptoxr.admins(owner)).to.be.true;
-    });
-
-    it("Initial otherAccount should not be admin", async function () {
-      // const { otherAccount } = await loadFixture(deploy);
-      expect(await cryptoxr.admins(otherAccount)).to.be.false;
-    })
-
-    it("Owner can add admin", async function () { 
-      await cryptoxr.connect(owner).addAdmin(otherAccount, true);
-      expect(await cryptoxr.admins(otherAccount)).to.be.true;
-    });
-
-    it ("Owner can remove admin", async function () { 
-      await cryptoxr.connect(owner).addAdmin(otherAccount, true);
-      expect(await cryptoxr.admins(otherAccount)).to.be.true;
-      await cryptoxr.connect(owner).addAdmin(otherAccount, false);
-      expect(await cryptoxr.admins(otherAccount)).to.be.false;
-    });
-
-    it("Other account added as admin", async function () {
-      await cryptoxr.connect(owner).addAdmin(otherAccount, true);
-      expect(await cryptoxr.admins(otherAccount)).to.be.true;
-    } );
-
-  });
-
-
-  describe("Mint & Burn", function () {
-    it("Owner can mint", async function () {
-      await cryptoxr
-        .connect(owner)
-        .mint(otherAccount, 1000000000000000000000000000n);
-      expect(await cryptoxr.balanceOf(otherAccount)).to.equal(
-        1000000000000000000000000000n
-      );
-    });
-
-    it("Other account cannot mint", async function () {
-      expect(cryptoxr.connect(otherAccount).mint(5)).to.be.revertedWith(
-        "You aren't owner"
-      );
-    });
-
-    it("Owner can burn their own assets", async function () {
-      await cryptoxr.connect(owner).burn("1000000000000000000000000000");
-      expect(await cryptoxr.balanceOf(owner)).to.equal(
-        4000000000000000000000000000n
-      );
-    });
-
-    it("Other account can burn its own assets", async function () {
-      await cryptoxr.transfer(otherAccount, "1000000000000000000000000000");
-      await cryptoxr.connect(otherAccount).burn("100000000000000000000000000");
-      expect(await cryptoxr.balanceOf(otherAccount)).to.equal(
-        900000000000000000000000000n
-      );
+    // Check that all balances match the expected balances
+    balances.forEach((balance, index) => {
+      expect(balance).to.equal(expectedBalances[index]);
     });
   });
 
-  describe("Events", function () {
+  it("Should allow only admin to mint tokens", async function () {
+    // Try to mint from a non-admin account
+    await expect(cryptoXRB.connect(user).mint(user.address, parseUnits("100", 18))).to.be.revertedWith("cryptoxr: not admin");
 
-    it("Should emit an event on mint", async function () {
-      expect(cryptoxr.connect(owner).mint(otherAccount, 1)).to.emit(
-        cryptoxr,
-        "Mint"
-      );
-    });
+    // Mint tokens from an admin account
+    await cryptoXRB.connect(admin).mint(user.address, parseUnits("100", 18));
 
-    it("Should emit an event on burn", async function () {
-      expect(cryptoxr.connect(owner).burn(1)).to.emit(cryptoxr, "Burn");
-    });
+    // Check the user's balance
+    const userBalance = await cryptoXRB.balanceOf(user.address);
+    expect(userBalance).to.equal(parseUnits("100", 18));
   });
 
-  describe("Transfers", function () {
-    it("Assets can be transfered", async function () {
-      await expect(
-        cryptoxr.connect(owner).transfer(otherAccount, 1)
-      ).to.changeTokenBalance(cryptoxr, owner, -1);
-    });
+  it("Should allow only owner to add and remove admins", async function () {
+    // Try to add an admin from a non-owner account
+    await expect(cryptoXRB.connect(user).addAdmin(user.address, true)).to.be.revertedWith("Ownable: caller is not the owner");
+
+    // Add an admin from the owner account
+    await cryptoXRB.connect(owner).addAdmin(user.address, true);
+    expect(await cryptoXRB.admins(user.address)).to.be.true;
+
+    // Remove an admin from the owner account
+    await cryptoXRB.connect(owner).addAdmin(user.address, false);
+    expect(await cryptoXRB.admins(user.address)).to.be.false;
+  });
+
+  it("Should allow burning tokens", async function () {
+
+    // Mint for owner
+    await cryptoXRB.mint(owner, parseUnits("1000000000", 18));
+
+    // Burn some tokens
+    await cryptoXRB.burn(parseUnits("100", 18));
+
+    // Check the owner's balance
+    const ownerBalance = await cryptoXRB.balanceOf(owner.address);
+
+    // Check the owner's balance
+    expect(ownerBalance).to.equal(parseUnits("999999900", 18));
+  });
+
+  it("Should allow only owner to withdraw tokens", async function () {
+    // Deploy a mock ERC20 token
+    const erc20Mock = await ethers.deployContract('ERC20Mock');
+
+    // Mint some tokens to the ERC20Mock contract
+    await erc20Mock.mint(cryptoXRB.target, parseUnits("100", 18));
+
+    // Try to withdraw tokens from a non-owner account
+    await expect(cryptoXRB.connect(user).withdraw(erc20Mock.target, user.address, parseUnits("50", 18))).to.be.revertedWith("Ownable: caller is not the owner");
+
+    // Withdraw tokens from the owner account
+    await cryptoXRB.connect(owner).withdraw(erc20Mock.target, user.address, parseUnits("50", 18));
+
+    // Check the user's balance in the ERC20Mock contract
+    const userBalance = await erc20Mock.balanceOf(user.address);
+    expect(userBalance).to.equal(parseUnits("50", 18));
+  });
+
+  it("Should emit Admin event when adding or removing admin", async function () {
+    // Add admin and check the emitted event
+    await expect(cryptoXRB.connect(owner).addAdmin(user.address, true))
+      .to.emit(cryptoXRB, "Admin")
+      .withArgs(user.address, true);
+
+    // Remove admin and check the emitted event
+    await expect(cryptoXRB.connect(owner).addAdmin(user.address, false))
+      .to.emit(cryptoXRB, "Admin")
+      .withArgs(user.address, false);
   });
 });

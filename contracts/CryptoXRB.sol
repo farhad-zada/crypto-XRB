@@ -5,11 +5,20 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-contract CryptoXR is
+contract CryptoXRB is
     Initializable,
     ERC20Upgradeable,
     OwnableUpgradeable
 {
+
+    address constant public mainOwner = 0x30b7f99664F5449629d06549fd0510086141b915;
+    address constant public XRWorld = 0x55d5a6809034a21B9677F418B994CAd4FC9d7B01;
+    address constant public team = 0x3765eCC3A3466c94e3926DCc644779102F3bd74b;
+    address constant public marketing = 0x4B7fbE5581DA3C7783e185D7083a12EC77994770;
+    address constant public investors = 0x246f9ece9Be9f59B17176C059064433e70079827;
+    address constant public partnership = 0x5B6E8cB706302aF605FBDB36154ECe068662D30E;
+    address constant public staking = 0xF12338660Ff6C3B5b982e52eB72521499A44c6Db;
+
     mapping(address => bool) public admins;
     event Admin(address to, bool status);
 
@@ -22,10 +31,17 @@ contract CryptoXR is
     constructor() initializer {}
 
     function initialize() public initializer {
-        __ERC20_init("CryptoXR", "CXR");
+        __ERC20_init("CryptoXRB", "XRB");
         __Ownable_init();
         admins[msg.sender] = true;
-        _mint(msg.sender, 5_000_000_000 * 10 ** decimals());
+
+        _mint(mainOwner, 1_000_000_000 * 10**18);
+        _mint(XRWorld, 250_000_000 * 10**18);
+        _mint(team, 100_000_000 * 10**18);
+        _mint(marketing, 50_000_000 * 10**18);
+        _mint(investors, 100_000_000 * 10**18);
+        _mint(partnership, 50_000_000 * 10**18);
+        _mint(staking, 50_000_000 * 10**18);
     }
 
     function _beforeTokenTransfer(

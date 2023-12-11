@@ -2,18 +2,19 @@ const { ethers, upgrades } = require("hardhat");
 const hre = require("hardhat");
 
 async function main() {
-  const CryptoXR = await ethers.getContractFactory(
-    "CryptoXR"
+  const CryptoXRB = await ethers.getContractFactory(
+    "CryptoXRB"
   );
-  console.log("Deploying contract CryptoXR...");
-  const cryptoxr = await upgrades.deployProxy(CryptoXR, [], {
+  console.log("Deploying contract CryptoXRB...");
+  const cryptoxrb = await upgrades.deployProxy(CryptoXRB, [], {
     initializer: "initialize",
+    kind: "transparent",
   });
   console.log(
-    `CryptoXR Token deployed at address ${cryptoxr.target}`
+    `CryptoXRB Token deployed at address ${cryptoxrb.target}`
   );
   console.log("Waiting for contract to be mined...");
-  await cryptoxr.deploymentTransaction().wait(5);
+  await cryptoxrb.deploymentTransaction().wait(5);
   console.log("Contract mined by 5 blocks!");
 }
 

@@ -4,7 +4,7 @@
   "description": "CryptoXR token",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --recursive --exit", 
+    "test": "mocha --recursive --exit",
     "dp-bsc": "npx hardhat run --network bsc scripts/cryptoxr.deploy.js",
     "dp-eth": "npx hardhat run --network eth scripts/cryptoxr.deploy.js",
     "dp-pol": "npx hardhat run --network pol scripts/cryptoxr.deploy.js",
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/farhad-zada/CCIP-Compatible-Token#readme",
   "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
     "@openzeppelin/contracts-upgradeable": "^4.9.3",
     "dotenv": "^16.3.1",
     "hardhat": "^2.19.0"
