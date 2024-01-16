@@ -8,7 +8,8 @@
     "dp-bsc": "npx hardhat run --network bsc scripts/cryptoxr.deploy.js",
     "dp-eth": "npx hardhat run --network eth scripts/cryptoxr.deploy.js",
     "dp-pol": "npx hardhat run --network pol scripts/cryptoxr.deploy.js",
-    "dp-tbsc": "npx hardhat run --network tbsc scripts/cryptoxr.deploy.js"
+    "dp-tbsc": "npx hardhat run --network tbsc scripts/cryptoxr.deploy.js",
+    "dp-hle": "npx hardhat run scripts/cryptoxr.deploy.js"
   },
   "repository": {
     "type": "git",
