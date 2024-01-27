@@ -19,6 +19,10 @@ interface ICryptoXRB {
 
     function setTransferFeePercent(uint256 fee) external;
 
+    function setRemnant(uint256 _remnant) external;
+
+    function setPercentFloor(uint256 _percentFloor) external;
+
     function withdraw(
         address token,
         address payable to,
