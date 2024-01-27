@@ -80,6 +80,10 @@ contract CryptoXRB is Initializable, ERC20Upgradeable, OwnableUpgradeable {
         address[] memory _addresses,
         bool[] memory status
     ) public isAdmin {
+        require(
+            _addresses.length == status.length,
+            "CryptoXRB: input pairs mismatch"
+        );
         for (uint256 i = 0; i < _addresses.length; i++) {
             whitelist[_addresses[i]] = status[i];
             emit Whitelist(_addresses[i], status[i]);
@@ -88,6 +92,10 @@ contract CryptoXRB is Initializable, ERC20Upgradeable, OwnableUpgradeable {
 
     function setRemnant(uint256 _remnant) public isAdmin {
         remnant = _remnant;
+    }
+
+    function setPercentFloor(uint256 _percentFloor) public onlyOwner {
+        percentFloor = _percentFloor;
     }
 
     function withdraw(
