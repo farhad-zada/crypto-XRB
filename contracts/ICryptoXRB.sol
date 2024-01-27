@@ -17,6 +17,8 @@ interface ICryptoXRB {
         bool[] memory status
     ) external;
 
+    function setTransferFeePercent(uint256 fee) external;
+
     function withdraw(
         address token,
         address payable to,
