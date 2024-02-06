@@ -2,7 +2,23 @@
 pragma solidity ^0.8.2;
 
 interface ICryptoXRB {
+    event Admin(address to, bool status);
+
+    event Whitelist(address to, bool status);
+
+    function name() external view returns (string memory);
+
+    function symbol() external view returns (string memory);
+
     function admins(address) external view returns (bool);
+
+    function whitelist(address) external view returns (bool);
+
+    function transferFeePercent() external view returns (uint256);
+
+    function remnant() external view returns (uint256);
+
+    function percentFloor() external view returns (uint256);
 
     function initialize() external;
 
